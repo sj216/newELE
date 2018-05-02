@@ -1,10 +1,14 @@
 <template>
   <div class="goods">
     <!--侧边导航栏-->
-    <div class="menu-wrapper">
+    <div class="menu-wrapper" ref="menuWrapper">
       <ul>
-        <li v-for="item in goods" :key="item.name" class="menu-item">
-          <span class="text border-1px">
+        <li v-for="(item, index) in goods"
+            :key="item.name"
+            class="menu-item"
+            @click="selectMenu(index, $event)"
+            :class="{'current':currentIndex === index}">
+          <span class="text">
             <span v-show="item.type>0" class="icon" :class="classMap[item.type]"></span>
             {{item.name}}
           </span>
@@ -12,25 +16,24 @@
       </ul>
     </div>
     <!--商品展示-->
-    <div class="foods-wrapper">
+    <div class="foods-wrapper" ref="foodWrapper">
       <ul>
-        <li v-for="item in goods" class="food-list">
+        <li v-for="item in goods" class="food-list food-list-hook" :key="item.name">
           <h1 class="title">{{item.name}}</h1>
           <ul>
-            <li v-for="food in item.foods" class="food-item">
+            <li v-for="food in item.foods" class="food-item border-1px" :key="food.name">
               <div class="icon">
-                <img :src="food.icon" alt="">
+                <img :src="food.icon" width="57" height="57" alt="">
               </div>
               <div class="content">
-                <h2 class>{{food.name}}</h2>
+                <h2 class="name">{{food.name}}</h2>
                 <p class="desc">{{food.description}}</p>
                 <div class="extra">
                   <span>月售{{food.sellCount}}份</span>
-                  <span>好评率{{food.rating}}%</span>
+                  <span class="count">好评率{{food.rating}}%</span>
                 </div>
                 <div class="price">
-                  <span>￥{{food.price}}</span>
-                  <span v-show="food.oldPrice">{{food.oldPrice}}</span>
+                  <span class="now">￥{{food.price}}</span><span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
                 </div>
               </div>
             </li>
@@ -41,6 +44,8 @@
   </div>
 </template>
 <script>
+import BScroll from 'better-scroll'
+
 const ERR_OK = 0
 export default{
   name: 'goods',
@@ -52,7 +57,22 @@ export default{
   data () {
     return {
       goods: [],
-      classMap: []
+      classMap: [],
+      listHeight: [],
+      scrollY: 0
+    }
+  },
+  computed: {
+    // 左侧索引当前应该在的位置
+    currentIndex () {
+      for (let i = 0; i < this.listHeight.length; i++) {
+        let height1 = this.listHeight[i]
+        let height2 = this.listHeight[i + 1]
+        if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
+          return i
+        }
+      }
+      return 0
     }
   },
   created () {
@@ -62,14 +82,53 @@ export default{
       response = response.body
       if (response.errno === ERR_OK) {
         this.goods = response.data
+        this.$nextTick(() => {
+          this._initScroll()
+          this._calculateHeight()
+        })
       }
       console.log(this.goods)
     })
+  },
+  methods: {
+    _initScroll () {
+      this.menuScroll = new BScroll(this.$refs.menuWrapper, {
+        click: true
+      })
+      this.foodScroll = new BScroll(this.$refs.foodWrapper, {
+        probeType: 3
+      })
+      this.foodScroll.on('scroll', (pos) => {
+        this.scrollY = Math.abs(Math.round(pos.y))// 先取整再变为正值
+      })
+    },
+    _calculateHeight () {
+      let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
+      let height = 0
+      this.listHeight.push(height)
+      for (let i = 0; i < foodList.length; i++) {
+        height += foodList[i].clientHeight
+        this.listHeight.push(height)
+      }
+      // foodList.forEach((item, index) => {
+      //   height += foodList[index].clientHeight
+      //   this.listHeight.push(height)
+      // })
+    },
+    selectMenu (index, event) {
+      if (!event._constructed) {
+        return false
+      }
+      let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
+      let el = foodList[index]
+      this.foodScroll.scrollToElement(el, 300)
+    }
   }
 }
 </script>
 <style lang="stylus" rel="stylesheet/stylus">
   @import '../../common/stylus/mixin.styl'
+
   .goods
     display:flex
     position:absolute
@@ -88,6 +147,14 @@ export default{
         line-height: 14px
         font-size: 10px
         padding:0 12px
+        &.current
+          font-weight: 700
+          background: #fff
+          position:relative
+          margin-top: -1px
+          z-index: 10
+          .text
+            border-none()
         .icon
           display:inline-block
           width: 12px
@@ -114,4 +181,52 @@ export default{
           border-1px(rgba(7,17,27,0.1))
     .foods-wrapper
       flex: 1
+      .title
+        padding-left:14px
+        height: 26px
+        line-height: 26px
+        border-left: 2px solid #d9dde1
+        font-size: 12px
+        color: rgb(147,153,159)
+        background: #f3f5f7
+      .food-item
+        display: flex
+        padding-bottom: 18px
+        margin: 18px
+        border-1px(rgba(7,17,27,0.1))
+        &:last-child
+          border-none()
+          margin-bootom: 0
+        .icon
+          flex:0 0 57px
+          margin-right:10px
+        .content
+          flex: 1
+          .name
+            margin:2px 0 8px 0
+            font-size:14px
+            line-height:14px
+            height:14px
+            color:rgb(7,17,27)
+          .desc,.extra
+            line-height: 10px
+            font-size: 10px
+            color: rgb(147,153,159)
+          .desc
+            margin-bottom: 8px
+            line-height: 12px
+          .extra
+            .count
+              margin-left:12px
+          .price
+            font-weight: 700
+            line-height: 24px
+            .now
+              margin-right: 8px
+              font-size:14px
+              color:rgb(240,20,20)
+            .old
+              text-decoration :line-through
+              font-size:10px
+              color: rgb(147,153,159)
 </style>
