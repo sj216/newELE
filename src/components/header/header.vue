@@ -20,13 +20,13 @@
       </div>
       <div class="support-count" v-if="seller.supports" @click="showDetail">
         <span class="count">{{seller.supports.length}}个</span>
-        <i class="icon-keyboard_arrow_right"></i>
+        <i class="icon-thumb_up"></i>
       </div>
     </div>
     <!--公告区块-->
     <div class="bulletin-wrapper" @click="showDetail">
       <span class="bulletin-title"></span><span class="bulletin-text">{{seller.bulletin}}</span>
-      <i class="icon-keyboard_arrow_right"></i>
+      <i class="icon-thumb_up"></i>
     </div>
     <!--头部背景图片-->
     <div class="background">
@@ -65,7 +65,7 @@
           </div>
         </div>
         <div class="detail-close" @click="hideDetail">
-          <i class="icon-close"></i>
+          <i class="icon-remove_circle_outline"></i>
         </div>
       </div>
     </transition>
@@ -180,7 +180,7 @@ export default {
         text-align:center
         .count
           font-size: 10px
-        .icon-keyboard_arrow_right
+        .icon-thumb_up
           font-size: 10px
           line-height: 24px
           margin-left: 2px
@@ -208,7 +208,7 @@ export default {
         font-size: 10px
         font-weight: 200px
         margin:0 4px
-      .icon-keyboard_arrow_right
+      .icon-thumb_up
         font-size: 10px
         position :absolute
         right: 12px

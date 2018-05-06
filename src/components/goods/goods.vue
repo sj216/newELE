@@ -35,16 +35,23 @@
                 <div class="price">
                   <span class="now">￥{{food.price}}</span><span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
                 </div>
+                <div class="cartControl-wrapper">
+                  <cart-control :food="food"></cart-control>
+                </div>
               </div>
             </li>
           </ul>
         </li>
       </ul>
     </div>
+    <!--购物车-->
+    <shop-cart :deliveryPrice="seller.deliveryPrice" :minPrice="seller.minPrice"></shop-cart>
   </div>
 </template>
 <script>
 import BScroll from 'better-scroll'
+import shopCart from '../shopCart/shopCart'
+import cartControl from '../cartControl/cartControl'
 
 const ERR_OK = 0
 export default{
@@ -96,6 +103,7 @@ export default{
         click: true
       })
       this.foodScroll = new BScroll(this.$refs.foodWrapper, {
+        click: true,
         probeType: 3
       })
       this.foodScroll.on('scroll', (pos) => {
@@ -103,17 +111,18 @@ export default{
       })
     },
     _calculateHeight () {
-      let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
+      let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook') // 得到的foodList是一个类数组
       let height = 0
       this.listHeight.push(height)
-      for (let i = 0; i < foodList.length; i++) {
-        height += foodList[i].clientHeight
-        this.listHeight.push(height)
-      }
-      // foodList.forEach((item, index) => {
-      //   height += foodList[index].clientHeight
+      // for (let i = 0; i < foodList.length; i++) {
+      //   height += foodList[i].clientHeight
       //   this.listHeight.push(height)
-      // })
+      // }
+      foodList = [...foodList]
+      foodList.forEach((item, index) => {
+        height += foodList[index].clientHeight
+        this.listHeight.push(height)
+      })
     },
     selectMenu (index, event) {
       if (!event._constructed) {
@@ -123,6 +132,10 @@ export default{
       let el = foodList[index]
       this.foodScroll.scrollToElement(el, 300)
     }
+  },
+  components: {
+    shopCart,
+    cartControl
   }
 }
 </script>
@@ -148,11 +161,11 @@ export default{
         font-size: 10px
         padding:0 12px
         &.current
-          font-weight: 700
-          background: #fff
           position:relative
           margin-top: -1px
           z-index: 10
+          font-weight:700
+          background: #fff
           .text
             border-none()
         .icon
@@ -229,4 +242,8 @@ export default{
               text-decoration :line-through
               font-size:10px
               color: rgb(147,153,159)
+          .cartControl-wrapper
+            position absolute
+            right: 0
+            bottom: 12px
 </style>

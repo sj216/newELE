@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="content">
-      <router-view></router-view>
+      <router-view :seller="seller"></router-view>
     </div>
   </div>
 </template>
@@ -39,6 +39,7 @@ export default {
       response = response.body
       if (response.errno === ERROR_OK) {
         this.seller = response.data
+        console.log(this.seller)
       }
     })
   },
