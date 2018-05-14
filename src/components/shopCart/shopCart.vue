@@ -1,6 +1,6 @@
 <template>
   <div class="shopcart">
-    <div class="content">
+    <div class="content" @click="toggleList">
       <div class="content-left">
         <div class="logo-wrapper">
           <div class="logo" :class="{'heightLight': totalCount>0}">
@@ -17,12 +17,72 @@
         </div>
       </div>
     </div>
+    <div class="ball-container">
+      <transition v-for="(ball, index) in balls" :key="index"
+                        v-on:before-enter="beforeEnter"
+                        v-on:enter="enter"
+                        v-on:after-enter="afterEnter"
+      >
+        <div v-show="ball.show" class="ball">
+          <div class="inner inner-hook"></div>
+        </div>
+      </transition>
+    </div>
+    <transition name="fold">
+      <div class="shopCart-list"  v-show="listShow">
+        <div class="list-header">
+          <h1 class="title">购物车</h1>
+          <span class="empty">清空</span>
+        </div>
+        <div class="list-content">
+          <ul>
+            <li class="food" v-for="(food, index) in selectFoods" :key="index">
+              <span class="name">{{food.name}}</span>
+              <div class="price">
+                <span>¥{{ food.price*food.count }}</span>
+                <div class="cartcontrol-wrapper">
+                  <cart-control :food="food"></cart-control>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+import cartControl from '../cartControl/cartControl'
+
 export default {
   name: 'shopCart',
+  data () {
+    return {
+      balls: [
+        {
+          show: false
+        },
+        {
+          show: false
+        },
+        {
+          show: false
+        },
+        {
+          show: false
+        },
+        {
+          show: false
+        }
+      ],
+      // 已经下落的小球的数组
+      dropBalls: [],
+      fold: true
+    }
+  },
+  components: {cartControl},
   props: {
     selectFoods: {
       type: Array,
@@ -75,6 +135,82 @@ export default {
       } else {
         return 'enough'
       }
+    },
+    listShow () {
+      const vm = this
+      if (!vm.totalCount) {
+        vm.fold = true
+        return false
+      }
+      let show = !vm.fold
+      return show
+    }
+  },
+  methods: {
+    drop (el) {
+      for (let i = 0; i < this.balls.length; i++) {
+        let ball = this.balls[i]
+        if (!ball.show) {
+          ball.show = true
+          ball.el = el
+          this.dropBalls.push(ball)
+          return false
+        }
+      }
+      // this.balls.forEach((item) => {
+      //   let ball = item
+      //   if (!ball.show) {
+      //     ball.show = true
+      //     ball.el = el
+      //     this.dropBalls.push(ball)
+      //   }
+      //   return false
+      // })
+    },
+    beforeEnter: function (el) {
+      let count = this.balls.length
+      while (count--) {
+        let ball = this.balls[count]
+        if (ball.show) {
+          let rect = ball.el.getBoundingClientRect()// 获得元素相对于视口的位置
+          let x = rect.left - 32
+          let y = -(window.innerHeight - rect.top - 22)
+          el.style.display = ''
+          el.style.webkitTransform = `translate3d(0,${y}px,0)`
+          el.style.transform = `translate3d(0,${y}px,0)`
+          let inner = el.getElementsByClassName('inner-hook')[0]
+          inner.style.webkitTransform = `translate3d(${x}px,0,0)`
+          inner.style.transform = `translate3d(${x}px,0,0)`
+        }
+      }
+    },
+    // 此回调函数是可选项的设置
+    // 与 CSS 结合时使用
+    enter: function (el, done) {
+      /* eslint-disable no-unused-vars */
+      let rf = el.offsetHeight// 手动触发浏览器重绘
+      // 把样式重新zhi置回
+      this.$nextTick(() => {
+        el.style.webkitTransform = 'translate3d(0,0,0)'
+        el.style.transform = 'translate3d(0,0,0)'
+        let inner = el.getElementsByClassName('inner-hook')[0]
+        inner.style.webkitTransform = 'translate3d(0,0,0)'
+        inner.style.transform = 'translate3d(0,0,0)'
+        el.addEventListener('transitionend', done)
+      })
+    },
+    afterEnter: function (el) {
+      let ball = this.dropBalls.shift()
+      if (ball) {
+        ball.show = false
+        el.style.display = 'none'
+      }
+    },
+    toggleList () {
+      if (!this.totalCount) {
+        return false
+      }
+      this.fold = !this.fold
     }
   }
 }
@@ -170,4 +306,26 @@ export default {
           &.enough
             background: #00b43c
             color: #fff
+    .ball-container
+      .ball
+        position:absolute
+        left: 32px
+        bottom: 22px
+        z-index: 200
+        transition: all 0.4s cubic-bezier(0.49,-0.29,0.75,0.41)
+        .inner
+          width:16px
+          height:16px
+          border-radius : 50%
+          background rgb(0,160,220)
+          transition: all 0.4s linear
+    .shopCart-list
+      position:absolute
+      top:0
+      left:0
+      z-index: -1
+      width: 100%
+      &.fold-enter-active,&.fold-leave-active
+        transform: translate3d(0,-100%,0)
+        transition: transform 0.4s linear
 </style>

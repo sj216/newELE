@@ -36,7 +36,7 @@
                   <span class="now">￥{{food.price}}</span><span v-show="food.oldPrice" class="old">￥{{food.oldPrice}}</span>
                 </div>
                 <div class="cartControl-wrapper">
-                  <cart-control :food="food"></cart-control>
+                  <cart-control :food="food" @drop="_drop"></cart-control>
                 </div>
               </div>
             </li>
@@ -45,7 +45,7 @@
       </ul>
     </div>
     <!--购物车-->
-    <shop-cart :deliveryPrice="seller.deliveryPrice" :minPrice="seller.minPrice"></shop-cart>
+    <shop-cart :deliveryPrice="seller.deliveryPrice" :minPrice="seller.minPrice" :selectFoods="selectFoods" ref="shopCart"></shop-cart>
   </div>
 </template>
 <script>
@@ -80,6 +80,17 @@ export default{
         }
       }
       return 0
+    },
+    selectFoods () {
+      let foods = []
+      this.goods.forEach((good) => {
+        good.foods.forEach((food) => {
+          if (food.count) {
+            foods.push(food)
+          }
+        })
+      })
+      return foods
     }
   },
   created () {
@@ -131,6 +142,12 @@ export default{
       let foodList = this.$refs.foodWrapper.getElementsByClassName('food-list-hook')
       let el = foodList[index]
       this.foodScroll.scrollToElement(el, 300)
+    },
+    _drop (target) {
+      // 体验优化异步执行下一个动画
+      this.$nextTick(() => {
+        this.$refs.shopCart.drop(target)
+      })
     }
   },
   components: {

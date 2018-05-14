@@ -40,6 +40,8 @@ export default {
       } else {
         this.food.count++
       }
+      // 派发事件，将dom对象传出来
+      this.$emit('drop', event.target)
     },
     decreaseCount (event) {
       if (!event._constructed) {
@@ -59,24 +61,19 @@ export default {
     .cartDecrease
       display: inline-block
       padding: 6px
-
-      &.move-enter-active,&.move-leave-active
-        opacity: 1
-        transform: translate3d(0,0,0)
-        transition: all 0.4s linear
-      &.move-enter,&.move-leave-to
-        opacity: 0
-        transform: translate3d(24px,0,0)
-      &.move-enter-active,&.move-leave-active .inner_move
-        transform: rotate(0deg)
-        transition: all 0.4s linear
-      &.move-enter,&.move-leave-to .inner_move
-        transform: rotate(180deg)
       .inner
         display: block
         font-size: 24px
         line-height: 24px
         color: rgb(0,160,220)
+        transition: all 0.4s linear
+      &.move-enter-active,&.move-leave-active
+        transition: all 0.4s linear
+      &.move-enter,&.move-leave-active
+        opacity: 0
+        transform: translate3d(24px,0,0)
+      &.move-enter, &.move-leave-active .inner_move
+        transform: rotate(180deg)
   .cartCount
       display: inline-block
       vertical-align: top
