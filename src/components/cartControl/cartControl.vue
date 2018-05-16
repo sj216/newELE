@@ -1,12 +1,12 @@
 <template>
   <div class="cartControl">
     <transition name="move">
-      <div class="cartDecrease" v-show="food.count>0" @click="decreaseCount($event)">
+      <div class="cartDecrease" v-show="food.count>0" @click.stop.prevent="decreaseCount($event)">
         <span class="icon-shopping_cart inner inner_move"></span>
       </div>
     </transition>
     <div class="cartCount" v-show="food.count>0">{{food.count}}</div>
-    <div class="cartAdd icon-thumb_down" @click="addCart($event)"></div>
+    <div class="cartAdd icon-thumb_down" @click.stop.prevent="addCart($event)"></div>
   </div>
 </template>
 
@@ -24,9 +24,6 @@ export default {
         }
       }
     }
-  },
-  created () {
-    console.log(this.food)
   },
   methods: {
     addCart (event) {
