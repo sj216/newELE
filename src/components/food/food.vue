@@ -25,15 +25,36 @@
           </transition>
         </div>
         <split v-show="food.info"></split>
-        <div class="info">
+        <div class="info" v-show="food.info">
           <h1 class="title">商品信息</h1>
           <p class="text" v-show="food.info">{{food.info}}</p>
         </div>
         <split></split>
         <div class="rating">
           <div class="title">商品评价</div>
-          <ratingselect :selectType="selectType" :onlyContent="onlyContent"
-                        :desc="desc" :ratings="food.ratings" @changeType="changeType"></ratingselect>
+          <ratingselect :selectType="selectType"
+                        :onlyContent="onlyContent"
+                        :desc="desc"
+                        :ratings="food.ratings"
+                        @changeType="changeType"
+                        @changeOnlyContent="changeOnlyContent"
+          ></ratingselect>
+          <div class="rating-wrapper">
+            <ul v-show="food.ratings && food.ratings.length">
+              <li v-show="needShow(rating.rateType, rating.text)" v-for="(rating, index) in food.ratings" class="rating-item border-1px" :key="index">
+                <div class="user">
+                  <span class="name">{{rating.username}}</span>
+                  <img class="avatar" width="12" height="12" :src="rating.avatar">
+                </div>
+                <div class="time">{{rating.rateTime | formatDate}}</div>
+                <p class="text">
+                  <span :class="{'icon-arrow_lift':rating.rateType === 0, 'icon-check_circle': rating.rateType === 1}"></span>
+                  {{rating.text}}
+                </p>
+              </li>
+            </ul>
+            <div class="no-rating" v-show="!food.ratings || !food.ratings.length">暂无评价</div>
+          </div>
         </div>
       </div>
     </div>
@@ -45,9 +66,8 @@ import BScroll from 'better-scroll'
 import cartControl from '../cartControl/cartControl'
 import split from '../split/split'
 import ratingselect from '../ratingselect/ratingselect'
+import { formatDate } from '../../common/js/date'
 
-// const POSITIVE = 0
-// const NEGATIVE = 1
 const ALL = 2
 
 export default {
@@ -61,12 +81,18 @@ export default {
     return {
       showFlag: false,
       selectType: ALL,
-      onlyContent: true,
+      onlyContent: false,
       desc: {
         all: '全部',
         positive: '推荐',
         negative: '吐槽'
       }
+    }
+  },
+  filters: {
+    formatDate (time) {
+      let date = new Date(time)
+      return formatDate(date, 'yyyy-MM-dd hh:mm')
     }
   },
   components: {
@@ -100,14 +126,36 @@ export default {
       this.$emit('drop', event.target)
       this.$set(this.food, 'count', 1)
     },
-    changeType (val) {
-      this.selectType = val
+    changeType (type) {
+      this.selectType = type
+      this.$nextTick(() => {
+        this.scroll.refresh()
+      })
+    },
+    changeOnlyContent (val) {
+      this.onlyContent = val
+      this.$nextTick(() => {
+        this.scroll.refresh()
+      })
+    },
+    needShow (type, text) {
+      // 判断是否要显示内容
+      if (this.onlyContent && !text) {
+        return false
+      }
+      // 判断显示的类型
+      if (this.selectType === ALL) { // 是否显示全部
+        return true
+      } else { // 推荐或者吐槽
+        return type === this.selectType
+      }
     }
   }
 }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
+  @import '../../common/stylus/mixin.styl'
   .food
     position: fixed
     left:0
@@ -214,4 +262,45 @@ export default {
           margin-bottom: 6px
           font-size: 14px
           color:rgb(7,17,27)
+        .rating-wrapper
+          padding:0 18px
+          .rating-item
+            position: relative
+            padding: 16px 0
+            border-1px(rgba(7,17,27,0.1))
+            .user
+              position: absolute
+              right:0
+              top: 16px
+              font-size: 0
+              line-height:12px
+              .name
+                margin-right: 6px
+                display:inline-block
+                vertical-align :top
+                font-size: 10px
+                color: rgb(147,153,159)
+              .avatar
+                border-radius:50%
+            .time
+              margin-bottom: 6px
+              font-size: 10px
+              line-height: 12px
+              color: rgb(147,153,159)
+            .text
+              line-height: 16px
+              font-size: 12px
+              color: rgb(7,17,27)
+              .icon-arrow_lift,.icon-check_circle
+                line-height: 12px
+                margin-right: 4px
+                font-size: 12px
+              .icon-arrow_lift
+                color:rgb(0,160,220)
+              .icon-check_circle
+                color:rgb(147,153,159)
+          .no-rating
+            padding: 16px 0
+            font-size:12px
+            color:rgb(147,153,159)
     </style>

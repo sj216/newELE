@@ -1,26 +1,44 @@
 <template>
   <div class="ratingselect">
     <div class="rating-type border-1px">
-      <span @click="select(2,$event)" class="block positive" :class="{ 'active': selectType === 2 }">{{desc.all}} <span class="count">47</span></span>
-      <span @click="select(0,$event)" class="block positive" :class="{ 'active': selectType === 0 }">{{desc.positive}} <span class="count">40</span></span>
-      <span @click="select(1,$event)" class="block negative" :class="{ 'active': selectType === 1 }">{{desc.negative}} <span class="count">7</span></span>
+      <span @click="select(2,$event)" class="block positive" :class="{ 'active': type === 2 }">{{desc.all}} <span class="count">{{ratings.length}}</span></span>
+      <span @click="select(0,$event)" class="block positive" :class="{ 'active': type === 0 }">{{desc.positive}} <span class="count">{{positive.length}}</span></span>
+      <span @click="select(1,$event)" class="block negative" :class="{ 'active': type === 1 }">{{desc.negative}} <span class="count">{{negative.length}}</span></span>
     </div>
-    <div class="switch" :class="{ 'on':onlyContent }">
-      <span class="icon-keyboard_arrow_right" ></span>
+    <div class="switch" :class="{ 'on': toggle }">
+      <span class="icon-keyboard_arrow_right" @click="toggleContent"></span>
       <span class="text">只看内容和评价</span>
     </div>
   </div>
 </template>
 
 <script>
-// const POSITIVE = 0
-// const NEGATIVE = 1
+const POSITIVE = 0
+const NEGATIVE = 1
 const ALL = 2
 
 export default {
   name: 'ratingselect',
+  data () {
+    return {
+      type: '',
+      toggle: false
+    }
+  },
+  computed: {
+    positive () {
+      return this.ratings.filter((rating) => {
+        return rating.rateType === POSITIVE
+      })
+    },
+    negative () {
+      return this.ratings.filter((rating) => {
+        return rating.rateType === NEGATIVE
+      })
+    }
+  },
   props: {
-    2: {
+    ratings: {
       type: Array,
       default () {
         return []
@@ -47,12 +65,22 @@ export default {
       }
     }
   },
+  created () {
+    // 过程中涉及修改属性的值，这时可用一个变量将值保存下来
+    this.type = this.selectType
+    this.toggle = this.onlyContent
+  },
   methods: {
     select (type, event) {
       if (!event._constructed) {
         return false
       }
+      this.type = type
       this.$emit('changeType', type)
+    },
+    toggleContent () {
+      this.toggle = !this.toggle
+      this.$emit('changeOnlyContent', this.toggle)
     }
   }
 }
