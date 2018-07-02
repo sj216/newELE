@@ -26,6 +26,7 @@
 
 <script type="text/ecmascript-6">
 import vHeader from '@/components/header/header.vue'
+import { urlParse } from './common/js/util.js'
 
 const ERROR_OK = 0 // 返回0是成功
 
@@ -33,6 +34,17 @@ export default {
   name: 'App',
   components: {
     vHeader
+  },
+  data () {
+    return {
+      seller: {
+        id: (() => {
+          let queryParam = urlParse()
+          console.log('queryParam', queryParam)
+          return queryParam.id
+        })()
+      }
+    }
   },
   created () {
     this.$http.get('/api/seller').then((response) => {
@@ -42,11 +54,6 @@ export default {
         console.log(this.seller)
       }
     })
-  },
-  data () {
-    return {
-      seller: {}
-    }
   }
 }
 </script>
