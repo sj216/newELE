@@ -40,18 +40,17 @@ export default {
       seller: {
         id: (() => {
           let queryParam = urlParse()
-          console.log('queryParam', queryParam)
           return queryParam.id
         })()
       }
     }
   },
   created () {
-    this.$http.get('/api/seller').then((response) => {
+    this.$http.get('/api/seller?id=' + this.seller.id).then((response) => {
       response = response.body
       if (response.errno === ERROR_OK) {
-        this.seller = response.data
-        console.log(this.seller)
+        // this.seller = response.data
+        this.seller = Object.assign({}, this.seller, response.data)
       }
     })
   }
